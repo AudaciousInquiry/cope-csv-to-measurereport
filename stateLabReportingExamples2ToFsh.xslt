@@ -101,6 +101,8 @@
             <!-- NOTE: For conversion, these should come from 
                 existing Location and Organization records
             -->
+            <xsl:message terminate="yes"></xsl:message>
+           
             <!-- Generate State Record body -->
             <xsl:variable name="stateBody">
                 <xsl:copy-of select="s:string(('id'), ('states-',$state))"/>

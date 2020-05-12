@@ -62,45 +62,10 @@ public class SanerCSVAdapterController {
 		return "Working..";
 	}
 
-	@PostMapping("/csv/transform1")
-	public ResponseEntity<StreamingResponseBody> handleFileUpload1(
-			@RequestParam("mappingfile") MultipartFile mappingFile, @RequestParam("csvfile") MultipartFile csvFile,
-			RedirectAttributes redirectAttributes, final HttpServletResponse response) {
-
-        System.setProperty("javax.xml.transform.TransformerFactory",
-                  "net.sf.saxon.TransformerFactoryImpl");
-		Resource xsltResource = resourceLoader.getResource("classpath:stateLabReportingExamples2ToFsh.xslt");
-
-		StreamingResponseBody stream = out -> {
-			Transformer  xsltTransformer;
-			try {
-				TransformerFactory transformerFactory = TransformerFactory.newInstance();
-				transformerFactory.setURIResolver(new ClasspathResourceURIResolver());
-				StreamSource stylesource = new StreamSource(xsltResource.getFile());
-
-			    String mappingText = IOUtils.toString(mappingFile.getInputStream(), StandardCharsets.UTF_8);
-			    String csvText = IOUtils.toString(csvFile.getInputStream(), StandardCharsets.UTF_8);
-
-				
-				xsltTransformer = transformerFactory.newTransformer(stylesource);
-				xsltTransformer.setErrorListener(new TransformerErrorListener());
-				xsltTransformer.setParameter("mapping", mappingText);
-				xsltTransformer.setParameter("csvInputData", csvText);
-				xsltTransformer.transform(new StreamSource(new StringReader("<xml/>")), new StreamResult(out));
-			} catch (TransformerException e) {
-				// TODO Auto-generated catch block
-				throw new SanerCsvParserException(e);
-			} catch (NullPointerException e) {
-				// TODO Auto-generated catch block
-				throw new SanerCsvParserException(e);
-			}
-		};
-		return new ResponseEntity(stream, HttpStatus.OK);
-	}
-	
 	@PostMapping("/csv/transform")
 	public ResponseEntity<StreamingResponseBody> handleFileUpload(
 			@RequestParam("mappingfile") MultipartFile mappingFile, @RequestParam("csvfile") MultipartFile csvFile,
+			@RequestParam("format") String format,
 			RedirectAttributes redirectAttributes, final HttpServletResponse response) {
 
         System.setProperty("javax.xml.transform.TransformerFactory",
@@ -147,6 +112,7 @@ public class SanerCSVAdapterController {
 		        ((TransformerImpl) transformer).getUnderlyingXsltTransformer().getUnderlyingController().setMessageEmitter(mw);
 		        transformer.setParameter("mapping", mappingText);
 		        transformer.setParameter("csvInputData", csvText);
+		        transformer.setParameter("format", format);
 		        transformer.transform(src, new StreamResult(out));
 			} catch (TransformerException e) {
 				throw new SanerCsvParserException(e);
